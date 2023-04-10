@@ -1,10 +1,10 @@
 const { Client } = require('tplink-smarthome-api');
-const BulbWrapper = require('./bulb');
+const BulbWrapper = require('./bulb-gradient');
 
 const client = new Client();
 
 (async () => {
-  const device = await client.getDevice({ host: '192.168.254.35' })
+  const device = await client.getDevice({ host: '192.168.1.104' })
 
   const isOn = await device.getPowerState()
 
@@ -14,5 +14,6 @@ const client = new Client();
 
   const bulb = new BulbWrapper(device)
 
-  bulb.startDisco(350)
+  //10000
+  bulb.startDisco(8000)
 })()
