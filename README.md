@@ -1,42 +1,39 @@
-Disco Mode For Smart Lights*
+Disco Mode For (Kasa KL130) Smart Light(s)
 ===
 
-![](disco_720.gif)
+![origin disco mode gif](disco_720.gif)
 
-**Bulbs supported:**
+## Fork Changes
 
-- Kasa KL130
+* Origin: [smart-light-disco](https://github.com/jrudio/smart-light-disco)
+  * GIF above is from origin. Doesn't display this forks functionality
+* Bulb Colour Changes:
+  * Added support for full-saturation random colours
+  * Changed colours to make it more of a gradient
+  * Simplified code
+* GPIO Support (see below)
 
-Planned support:
+## Explanation
 
-- A19 C by GE
+### Bulbs supported
 
-* Only a select few smart bulbs are supported due to access to these bulbs
+* Kasa KL130
 
-How to use
-===
+### GPIO Support
 
-`npm install smart-light-disco`
+* Added support for remote control through GPIO buttons.
+  * Buttons for:
+    * On/Off toggle
+    * White
+    * Disco
+    * Orange
+* Tested on a **Raspberry PI 3 Model B**
+* TODO: Add a diagram of tested button setup
+* TODO: Add explanation of how to customise for different button setup
 
-```
-const { Client } = require('tplink-smarthome-api');
-const BulbWrapper = require('smart-light-disco');
+## How to use
 
-const client = new Client();
+1. `npm install smart-light-disco`
 
-(async () => {
-  const device = await client.getDevice({ host: '192.168.254.35' })
-
-  const isOn = await device.getPowerState()
-
-  if (!isOn) {
-    await device.togglePowerState()
-  }
-
-  // pass in the device
-  const bulb = new BulbWrapper(device)
-
-  // fire up disco
-  bulb.startDisco(750)
-})()
-```
+2. Change host to the IP of the smart bulb in index.js
+   1. `const device = await client.getDevice({ host: '192.168.X.X' })`

@@ -1,6 +1,6 @@
 // BulbWrapper wraps around the bulb from 'tplink-smarthome-api'
 class BulbWrapper {
-  constructor (bulb) {
+  constructor(bulb) {
     this.bulb = bulb
     this.hue = 0
     this.saturation = 0
@@ -9,7 +9,7 @@ class BulbWrapper {
     this.discoInterval = null
   }
 
-  setColor (changeInterval) {
+  setColor(changeInterval) {
 
     const lightSettings = {
       transition_period: changeInterval,
@@ -23,7 +23,7 @@ class BulbWrapper {
     return this.bulb.lighting.setLightState(lightSettings)
   }
 
-  startDisco (changeInterval = 1000) {
+  startDisco(changeInterval = 1000) {
 
     this.discoInterval = setInterval(async () => {
 
