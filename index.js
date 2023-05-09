@@ -9,8 +9,10 @@ const discoInterval = 8000;
  * Problems:
  *  * Colours don't work
  *    * Maybe need to stop disco, object permanence?
- *  * Toggle works for a bit then dies, maybe async problem
- *  * Make led flash for all
+ *  * Power works for a bit then dies, maybe async problem
+ *  * Power isn't a toggle
+ *  * CTRL-C doesn't quit and doesn't error properly
+ *  * Make led flash for all button presses
  *  * Black button doesn't work
  *  * Debounce support
  */
