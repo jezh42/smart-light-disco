@@ -3,17 +3,66 @@ const BulbWrapper = require('./bulb-gradient');
 
 const client = new Client();
 
+const discoInterval = 8000;
+
 (async () => {
-  const device = await client.getDevice({ host: '192.168.1.104' })
 
-  const isOn = await device.getPowerState()
+  //** Setup Variables**/
+  // Smart Bulb
+  const smartBulbDevice = await client.getDevice({ host: '192.168.1.104' });
+  const isOn = await smartBulbDevice.getPowerState();
 
+  // GPIO
+  const gpio = require('onoff').gpio;
+  const redButton = new Gpio(4, 'in', 'both');
+  const whiteButton = new Gpio(27, 'in', 'both');
+  const yellowButton = new Gpio(19, 'in', 'both');
+  const greenButton = new Gpio(26, 'in', 'both');
+  // Testing
+  const blackButton = new Gpio(17, 'in', 'both');
+  const led = new Gpio(2, 'out');
+
+  /** Initialisers */
+  // Turn bulb on, if off
   if (!isOn) {
-    await device.togglePowerState()
+    await smartBulbDevice.togglePowerState();
   }
 
-  const bulb = new BulbWrapper(device)
+  // Create our custom bulb wrapper object
+  const bulbDisco = new BulbWrapper(smartBulbDevice);
 
-  //10000
-  bulb.startDisco(8000)
+  // Start the disco with an interval of 8 seconds between gradients
+  bulbDisco.startDisco(discoInterval);
+
+  /** Buttons */
+  // Black Button => toggle led
+  blackButton.watch((err, value) => led.writeSync(value));
+  // Red Button => On/Off toggle for smart bulb
+  redButton.watch(async (err, value) => await smartBulbDevice.togglePowerState());
+  // White Button => White rgb(255,255,255)
+  whiteButton.watch((err, value) =>
+    smartBulbDevice.lighting.setLightState({
+      transition_period: 0,
+      hue: 0,
+      saturation: 0,
+      brightness: 100,
+      color_temp: 0
+    })
+  );
+  // Yellow Button => Orange rgb(255,100,42)
+  yellowButton.watch((err, value) =>
+    smartBulbDevice.lighting.setLightState({
+      transition_period: 0,
+      hue: 16,
+      saturation: 100,
+      brightness: 58.2,
+      color_temp: 0
+    })
+  );
+  // Green Button => Disco/Gradient Mode
+  greenButton.watch((err, value) => bulbDisco.startDisco(discoInterval));
 })()
+
+
+
+
