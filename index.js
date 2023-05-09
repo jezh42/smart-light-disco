@@ -3,8 +3,17 @@ const BulbWrapper = require('./bulb-gradient');
 const Gpio = require('onoff').Gpio;
 
 const client = new Client();
-
 const discoInterval = 8000;
+
+/** 
+ * Problems:
+ *  * Colours don't work
+ *    * Maybe need to stop disco, object permanence?
+ *  * Toggle works for a bit then dies, maybe async problem
+ *  * Make led flash for all
+ *  * Black button doesn't work
+ *  * Debounce support
+ */
 
 (async () => {
 
@@ -62,12 +71,12 @@ const discoInterval = 8000;
     await smartBulbDevice.togglePowerState()
   });
   // White Button => White rgb(255,255,255)
-  whiteButton.watch((err, value) => {
+  whiteButton.watch(async (err, value) => {
     if (err) {
       throw err;
     }
 
-    smartBulbDevice.lighting.setLightState({
+    await smartBulbDevice.lighting.setLightState({
       transition_period: 0,
       hue: 0,
       saturation: 0,
@@ -76,12 +85,12 @@ const discoInterval = 8000;
     })
   });
   // Yellow Button => Orange rgb(255,100,42)
-  yellowButton.watch((err, value) => {
+  yellowButton.watch(async (err, value) => {
     if (err) {
       throw err;
     }
 
-    smartBulbDevice.lighting.setLightState({
+    await smartBulbDevice.lighting.setLightState({
       transition_period: 0,
       hue: 16,
       saturation: 100,
