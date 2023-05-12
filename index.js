@@ -7,41 +7,38 @@ const discoInterval = 8000;
 
 /** 
  * Problems:
- *  * Colours don't work
- *    * Maybe need to stop disco, object permanence?
- *  * Power works for a bit then dies, maybe async problem
- *  * Power isn't a toggle
+ *  * Disco stays on
  *  * CTRL-C doesn't quit and doesn't error properly
- *  * Make led flash for all button presses
- *  * Black button doesn't work
- *  * Debounce support
+ *  * Debounce support?
  */
+
+// Setup GPIO
+const redButton = new Gpio(4, 'in', 'both');
+const whiteButton = new Gpio(27, 'in', 'both');
+const yellowButton = new Gpio(19, 'in', 'both');
+const greenButton = new Gpio(26, 'in', 'both');
+const blackButton = new Gpio(17, 'in', 'both');
+const led = new Gpio(2, 'out');
+led.writeSync(0); // Led off at start
+
+//Free Resources on kill
+process.on('SIGINT', _ => {
+  redButton.unexport();
+  whiteButton.unexport();
+  yellowButton.unexport();
+  greenButton.unexport();
+  blackButton.unexport();
+  led.unexport();
+  // Kill process
+});
 
 (async () => {
 
-  //** Setup Variables**/
   // Smart Bulb
   const smartBulbDevice = await client.getDevice({ host: '192.168.1.104' });
   const isOn = await smartBulbDevice.getPowerState();
 
-  // GPIO
-  const redButton = new Gpio(4, 'in', 'both');
-  const whiteButton = new Gpio(27, 'in', 'both');
-  const yellowButton = new Gpio(19, 'in', 'both');
-  const greenButton = new Gpio(26, 'in', 'both');
-  // Testing
-  const blackButton = new Gpio(17, 'in', 'both');
-  const led = new Gpio(2, 'out');
-
-  //Free Resources on kill
-  process.on('SIGINT', _ => {
-    redButton.unexport();
-    whiteButton.unexport();
-    yellowButton.unexport();
-    greenButton.unexport();
-    blackButton.unexport();
-    led.unexport();
-  });
+  
 
   /** Initialisers */
   // Turn bulb on, if off
@@ -61,8 +58,9 @@ const discoInterval = 8000;
     if (err) {
       throw err;
     }
+    
+    buttonTest("black", value);
 
-    led.writeSync(value)
   });
   // Red Button => On/Off toggle for smart bulb
   redButton.watch(async (err, value) => {
@@ -70,7 +68,12 @@ const discoInterval = 8000;
       throw err;
     }
 
-    await smartBulbDevice.togglePowerState()
+    buttonTest("red", value);
+
+    if (value^1) {
+      console.log("Toggle power");
+      await smartBulbDevice.togglePowerState()
+    }
   });
   // White Button => White rgb(255,255,255)
   whiteButton.watch(async (err, value) => {
@@ -78,13 +81,18 @@ const discoInterval = 8000;
       throw err;
     }
 
-    await smartBulbDevice.lighting.setLightState({
-      transition_period: 0,
-      hue: 0,
-      saturation: 0,
-      brightness: 100,
-      color_temp: 0
-    })
+    buttonTest("white", value);
+
+    if (value^1) {
+      console.log("Toggle white");
+      await smartBulbDevice.lighting.setLightState({
+        transition_period: 0,
+        hue: 0,
+        saturation: 0,
+        brightness: 100,
+        color_temp: 0
+      });
+    }
   });
   // Yellow Button => Orange rgb(255,100,42)
   yellowButton.watch(async (err, value) => {
@@ -92,13 +100,18 @@ const discoInterval = 8000;
       throw err;
     }
 
-    await smartBulbDevice.lighting.setLightState({
-      transition_period: 0,
-      hue: 16,
-      saturation: 100,
-      brightness: 58.2,
-      color_temp: 0
-    })
+    buttonTest("yellow", value);
+    
+    if (value^1) {
+      console.log("Toggle orange");
+      await smartBulbDevice.lighting.setLightState({
+        transition_period: 0,
+        hue: 16,
+        saturation: 100,
+        brightness: 58.2,
+        color_temp: 0
+      })
+    }
   });
   // Green Button => Disco/Gradient Mode
   greenButton.watch((err, value) => {
@@ -106,10 +119,19 @@ const discoInterval = 8000;
       throw err;
     }
 
-    bulbDisco.startDisco(discoInterval)
+    buttonTest("green", value);
+
+    if (value^1) {
+      console.log("Toggle orange");
+      bulbDisco.startDisco(discoInterval)
+    }
   });
 })()
 
-
+// Test the button
+function buttonTest(colour, value) {
+  console.log(colour, "button pressed:", value);
+  led.writeSync(value^1)
+}
 
 
