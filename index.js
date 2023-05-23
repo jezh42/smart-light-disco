@@ -3,22 +3,23 @@ const BulbWrapper = require('./bulb-gradient');
 const Gpio = require('onoff').Gpio;
 
 const client = new Client();
-const discoInterval = 8000;
+const discoIntervalTime = 8000;
+let discoIntervalId = null;
 
 /** 
  * Problems:
- *  * Disco stays on
  *  * CTRL-C doesn't quit and doesn't error properly
  *  * Debounce support?
  */
 
 // Setup GPIO
-const redButton = new Gpio(4, 'in', 'both');
-const whiteButton = new Gpio(27, 'in', 'both');
-const yellowButton = new Gpio(19, 'in', 'both');
-const greenButton = new Gpio(26, 'in', 'both');
 const blackButton = new Gpio(17, 'in', 'both');
 const led = new Gpio(2, 'out');
+const redButton = new Gpio(4, 'in', 'both');
+const whiteButton = new Gpio(27, 'in', 'both');
+const yellowButton = new Gpio(5, 'in', 'both');
+const greenButton = new Gpio(26, 'in', 'both');
+
 led.writeSync(0); // Led off at start
 
 //Free Resources on kill
@@ -50,7 +51,7 @@ process.on('SIGINT', _ => {
   const bulbDisco = new BulbWrapper(smartBulbDevice);
 
   // Start the disco with an interval of 8 seconds between gradients
-  bulbDisco.startDisco(discoInterval);
+  discoIntervalId = bulbDisco.startDisco(discoIntervalTime);
 
   /** Buttons */
   // Black Button => toggle led
@@ -59,7 +60,7 @@ process.on('SIGINT', _ => {
       throw err;
     }
     
-    buttonTest("black", value);
+    buttonPress("black", value);
 
   });
   // Red Button => On/Off toggle for smart bulb
@@ -68,7 +69,7 @@ process.on('SIGINT', _ => {
       throw err;
     }
 
-    buttonTest("red", value);
+    buttonPress("red", value);
 
     if (value^1) {
       console.log("Toggle power");
@@ -81,10 +82,10 @@ process.on('SIGINT', _ => {
       throw err;
     }
 
-    buttonTest("white", value);
+    buttonPress("white", value);
 
     if (value^1) {
-      console.log("Toggle white");
+      console.log("Start white");
       await smartBulbDevice.lighting.setLightState({
         transition_period: 0,
         hue: 0,
@@ -100,10 +101,10 @@ process.on('SIGINT', _ => {
       throw err;
     }
 
-    buttonTest("yellow", value);
+    buttonPress("yellow", value);
     
     if (value^1) {
-      console.log("Toggle orange");
+      console.log("Start orange");
       await smartBulbDevice.lighting.setLightState({
         transition_period: 0,
         hue: 16,
@@ -119,19 +120,25 @@ process.on('SIGINT', _ => {
       throw err;
     }
 
-    buttonTest("green", value);
+    buttonPress("green", value);
 
     if (value^1) {
-      console.log("Toggle orange");
-      bulbDisco.startDisco(discoInterval)
+      console.log("Start disco");
+      discoIntervalId = bulbDisco.startDisco(discoIntervalTime);
     }
   });
 })()
 
-// Test the button
-function buttonTest(colour, value) {
+// Show light on press and clear disco on down
+function buttonPress(colour, value) {
   console.log(colour, "button pressed:", value);
   led.writeSync(value^1)
+
+  // Stop disco
+  if (value^1) {
+    console.log("Stop disco");
+    clearInterval(discoIntervalId);
+  }
 }
 
 

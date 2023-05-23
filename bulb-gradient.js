@@ -6,7 +6,7 @@ class BulbWrapper {
     this.saturation = 0
     this.colorTemp = 0
     this.brightness = 0
-    this.discoInterval = null
+    this.discoIntervalId = null
   }
 
   setColor(changeInterval) {
@@ -25,11 +25,13 @@ class BulbWrapper {
 
   startDisco(changeInterval = 1000) {
 
-    this.discoInterval = setInterval(async () => {
+    this.discoIntervalId = setInterval(async () => {
 
       await this.setColor(3000)
 
     }, changeInterval);
+
+    return this.discoIntervalId;
   }
 }
 
